@@ -29,6 +29,15 @@
 # Version : 0.18 -02.05.2015: Changes regarding amenity = place_of_worship and buildings
 # Version : 0.19 -19.06.2015: Proper handling place_of_worship without names (to show name and symbol too)
 # Version : 0.20 -16.03.2016: Remapped Camping from 0x2B03 to 0x2B05 due to categorization problems with GPSMap 64s
+# Version : 0.21 -03.06.2018: disabling DRINGKINGWATER and implementing NODRINKINGWATER:
+#                             display drinkingwater places per default, except NODRINKINGWATER set
+# Version : 0.22 -02.03.2019: - Adapted deprecated tagging for guest_house
+#                             - Adapted deprecated tagging amenity=public_building
+#                             - Adapted tourism=alpine_hut
+#                             - Adapted handling of special shops
+#                             - moved tourism=attraction as a general rule to the very end
+# Version : 0.23 -20.05.2019  - removed rendering of public_transport = stop_position & bus/tram = yes
+#
 #
 # Copyright (C) 2011, 2012 Klaus Tockloth <freizeitkarte@googlemail.com>
 #
@@ -365,7 +374,8 @@
 #
 # Optionale Features:
 # - TRIGMARK: Darstellung von Trigonometrischen Markierungen
-# - DRINKINGWATER: Darstellung von Trinkwasserstellen
+# - DRINKINGWATER: Darstellung von Trinkwasserstellen (Not needed anymore, always displayed except NODRINKINGWATER is set)
+# - NODRINKINGWATER: Disable display of Drinkingwater
 # ------------------------------------------------------------
 
 # -------------------------------------------------
@@ -392,24 +402,15 @@
 
 # Schutzhütte, Berghütte. [point, closedway]
 # siehe auch "amenity = shelter"
+# tag tourism=alpine_hut always with human presence: https://wiki.openstreetmap.org/wiki/Tag:tourism%3Dalpine_hut
 # Bewirtschaftete Berghütten
-tourism = alpine_hut & name = * & ele = * & amenity = restaurant {name "${name} (${ele})"}   [0x4803 resolution 23]
-tourism = alpine_hut & name = * & amenity = restaurant           {name "${name}"}            [0x4803 resolution 23]
-tourism = alpine_hut & ele = * & amenity = restaurant            {name "$__ALPINEHUT__ (${ele})"} [0x4803 resolution 23]
-tourism = alpine_hut & amenity = restaurant                      {name "$__ALPINEHUT__"}          [0x4803 resolution 23]
-
-# Selbstversorger Berghütten
-tourism = alpine_hut & name = * & ele = * {name "${name} (${ele})"}   [0x4804 resolution 23]
-tourism = alpine_hut & name = *           {name "${name}"}            [0x4804 resolution 23]
-tourism = alpine_hut & ele = *            {name "$__ALPINEHUT__ (${ele})"} [0x4804 resolution 23]
-tourism = alpine_hut                      {name "$__ALPINEHUT__"}          [0x4804 resolution 23]
+tourism = alpine_hut & name = * & ele = * {name "${name} (${ele})"}   [0x4803 resolution 23]
+tourism = alpine_hut & name = *           {name "${name}"}            [0x4803 resolution 23]
+tourism = alpine_hut & ele = *            {name "$__ALPINEHUT__ (${ele})"} [0x4803 resolution 23]
+tourism = alpine_hut                      {name "$__ALPINEHUT__"}          [0x4803 resolution 23]
 
 # Aquarium.
 tourism = aquarium & name = * {name "${name} ($__AQUARIUM__)"} [0x2c07 resolution 24]
-
-# Sehenswürdigkeit. [point, closedway]
-# (Excluding worship places here, that tag should be stronger than attraction)
-tourism = attraction & name = * & amenity != place_of_worship {name "${name} ($__ATTRACTION__)"} [0x6600 resolution 24]
 
 # Kunstwerk, Kunstobjekt. [point, closedway]
 tourism = artwork & name = * {name "${name} ($__ARTWORK__)"} [0x6600 resolution 24]
@@ -428,7 +429,10 @@ amenity = shelter & shelter_type = basic_hut & ele = *            {name "$__BASI
 amenity = shelter & shelter_type = basic_hut                      {name "$__BASICHUT__"}          [0x4805 resolution 23]
 
 # Bed & Breakfast. [point, closedway]
+# deprecated: tourism = bed_and_breakfast  https://wiki.openstreetmap.org/wiki/Tag:tourism%3Dguest_house
 tourism = bed_and_breakfast & name = * { name "${name} ($__BEDANDBREAKFAST__)" } [0x2b02 resolution 24]
+# New taggin:
+tourism = guest_house & guest_house = bed_and_breakfast & name = * { name "${name} ($__BEDANDBREAKFAST__)" } [0x2b02 resolution 24]
 
 # Campingplatz. [point, closedway]
 tourism = camp_site & name = * {name "${name} ($__CAMPSITE__)"} [0x2b05 resolution 24]
@@ -880,7 +884,6 @@ amenity = bicycle_rental {name "${name} ($__BICYCLERENTAL__)" | "$__BICYCLERENTA
 
 # Busbahnhof (große Haltestelle). [point, closedway] (s.a. highway = bus_stop)
 amenity = bus_station                         {name "${name} ($__BUSSTATION__)" | "$__BUSSTATION__"} [0x2f08 resolution 24]
-public_transport = stop_position & bus = yes  {name "${name} ($__BUSSTOP__)" | "$__BUSSTOP__"} [0x2f08 resolution 24]
 
 # Automobil-Club. [point, closedway]
 amenity = car_club & name = * {name "${name} ($__CARCLUB__)"} [0x2f0d resolution 24]
@@ -967,7 +970,7 @@ amenity = theatre & name = * {name "${name} ($__THEATRE__)"} [0x2d01 resolution 
 amenity = courthouse & name = * {name "${name} ($__COURTHOUSE__)"} [0x3004 resolution 24]
 
 # Trinkwasserstelle: Eine öffentlich zugängliche Trinkwasserstelle.
-#ifdef DRINKINGWATER
+#ifndef NODRINKINGWATER
   amenity = drinking_water {name "${name} ($__DRINKINGWATER__)" | "$__DRINKINGWATER__"} [0x6414 resolution 24]
 #endif
 
@@ -996,7 +999,10 @@ amenity = police {name "${name} ($__POLICE__)" | "$__POLICE__"} [0x3001 resoluti
 amenity = post_office {name "${name} ($__POSTOFFICE__)" | "$__POSTOFFICE__"} [0x2f05 resolution 24]
 
 # Öffentliches Gebäude.
+# deprecated: https://wiki.openstreetmap.org/wiki/DE:Key:amenity
 amenity = public_building & name = * {name "${name} ($__PUBLICBUILDING__)"} [0x3007 resolution 24]
+# New tagging
+building = public & name = * {name "${name} ($__PUBLICBUILDING__)"} [0x3007 resolution 24]
 
 # Ein Unterstand ist ein überdachter offener Platz als Schutz vor der Witterung. [point, closedway]
 amenity = shelter {name "${name} ($__SHELTER__)" | "$__SHELTER__"} [0x2b06 resolution 23]
@@ -1118,7 +1124,6 @@ railway = subway_entrance {name "${name} ($__SUBWAYENTRANCE__)" | "$__SUBWAYENTR
 
 # Straßenbahnhaltestelle: Ein Ort an dem Pasagiere in Straßenbahnen ein- oder aussteigen können. [point]
 railway = tram_stop                            {name "${name} ($__TRAMSTOP__)" | "$__TRAMSTOP__"} [0x2f08 resolution 24]
-public_transport = stop_position & tram = yes  {name "${name} ($__TRAMSTOP__)" | "$__TRAMSTOP__"} [0x2f08 resolution 24]
 
 # Eine Drehscheibe zum Wenden von Schienenfahrzeugen; findet sich häufig in älteren Bahnbetriebswerken. [point]
 # railway = turntable (wird derzeit nicht unterstützt)
@@ -1133,8 +1138,10 @@ shop = carpenter            {set shop=carpet; delete carpenter}
 shop = carpentry            {set shop=carpet; delete carpentry}
 shop = carpeting            {set shop=carpet; delete carpeting}
 shop = curtains             {set shop=curtain; delete curtains}
+shop = drugstore            {set shop=chemist; delete drugstore}
 shop = musical_instruments  {set shop=musical_instrument; delete musical_instruments}
-shop = winery               {set shop=wine; delete winery}
+shop = wine                 {set shop=alcohol; set wine=yes; delete wine}
+shop = winery               {set shop=alcohol; set wine=yes; delete winery}
 
 # Bäckerei. [point, closedway]
 shop = bakery & name = * {name "${name} ($__BAKERY__)"} [0x2a0d resolution 24]
@@ -1218,6 +1225,7 @@ shop = trade & name = * {name "${name} ($__TRADESHOP__)"} [0x2e08 resolution 24]
 shop = tyres & name = * {name "${name} ($__TYRES__)"} [0x2f07 resolution 24]
 
 # Spezialitäteneinzelhandel. [point, closedway]
+shop = alcohol & wine = yes & name = * {name "${name} ($__WINESHOP__)"} [0x2e0a resolution 24]
 shop = alcohol             & name = * {name "${name} ($__ALCOHOL__)"} [0x2e0a resolution 24]
 shop = art                 & name = * {name "${name} ($__ARTSHOP__)"} [0x2e0a resolution 24]
 shop = bed                 & name = * {name "${name} ($__BEDSHOP__)"} [0x2e0a resolution 24]
@@ -1271,7 +1279,6 @@ shop = travel_agency       & name = * {name "${name} ($__TRAVELAGENCY__)"} [0x2e
 shop = vacant              & name = * {name "${name} ($__VACANT__)"} [0x2e0a resolution 24]
 shop = variety_store       & name = * {name "${name} ($__VARIETYSTORE__)"} [0x2e0a resolution 24]
 shop = video               & name = * {name "${name} ($__VIDEO__)"} [0x2e0a resolution 24]
-shop = wine                & name = * {name "${name} ($__WINESHOP__)"} [0x2e0a resolution 24]
 
 # Alle anderen Geschäfte (Spezialitäteneinzelhandel). [point, closedway]
 shop = * & name = * {name "${name} (${shop})"} [0x2e0a resolution 24]
@@ -1728,6 +1735,9 @@ barrier = lift_gate [0x1210 resolution 24]
 # Grabstellen bedeutender Persönlichkeiten (d.h. Personen mit Wikipedia-Eintrag)
 # cemetery = grave & name = * & (wikipedia:de = * | wikipedia = * | website ~ 'wikipedia') {name "${name} (Ruhestaette)"} [0x6405 resolution 24]
 cemetery = grave & name = * & (wikipedia:de = * | wikipedia = * | website = *) {name "${name} ($__GRAVE__)"} [0x6405 resolution 24]
+
+# allgemeine Sehenswürdigkeit. [point, closedway]
+tourism = attraction & name = * {name "${name} ($__ATTRACTION__)"} [0x6600 resolution 24]
 
 
 # ------------------------------------------------

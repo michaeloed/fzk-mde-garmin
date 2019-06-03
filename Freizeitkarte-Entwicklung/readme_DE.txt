@@ -55,6 +55,10 @@ Nun können die Karten gebildet werden:
    - Erzeugen einer gmapsupp-Image-Datei für ein Garmin-GPS
      perl mt.pl gmapsupp Freizeitkarte_Saarland
 
+Um besondere Karte (wie beispielsweise Freizeitkarte_DEU+) zu bilden muss der oben beschriebene Ablauf angepasst werden:
+- bei fetch_osm wird anstatt Freizeitkarte_DEU+ die übergeordnete Region Freizeitkarte_EUROPE geladen
+- vor fetch_ele wird extract_osm Freizeitkarte_DEU+ ausgeführt
+
 Schalter:
 In den Kartenstyles sind einige logische Schalter (bedingte Übersetzung) eingebaut, die aktiviert werden können:
 Die Syntax um diese Schalter aufzurufen ist folgende
@@ -66,7 +70,7 @@ Folgende Schalter existieren:
 - WINTERSPORT: Darstellung von Linien für Wintersportaktivitäten (Pisten, Loipen, ...) [lines-master]
 - T36ROUTING: Routing auch über (Berg-)Wanderwege der Klassen T3-T6 [lines-master]
 - TRIGMARK: Darstellung von Trigonometrischen Markierungen [points-master]
-- DRINKINGWATER: Darstellung von Trinkwasserstellen [points-master]
+- NODRINKINGWATER: Abschalten der Darstellung von Trinkwasserstellen [points-master]
 - KULTURLAND: Darstellung von Ackerflächen [polygons-master]
 
 
