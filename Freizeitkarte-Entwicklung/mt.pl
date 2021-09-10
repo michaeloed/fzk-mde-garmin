@@ -519,6 +519,7 @@ my $maptype    = $EMPTY;
 my $mapparent  = $EMPTY;
 my $langdesc   = $EMPTY;
 my $maptypfile = "freizeit.TYP";
+my $maptyp = "freizeit";
 my $mapstyle    = "fzk";
 my $mapstyledir = 'style/fzk';
 
@@ -717,6 +718,9 @@ if ( $error ) {
 if ( $typfile ne $EMPTY ) {
   $maptypfile = $typfile;
 }
+my $dir;
+my $ext;
+($maptyp,$dir,$ext) = fileparse($maptypfile, qr/\.[^.]*/);
 
 # Checking if this TYP file exists
 $error = 1;
@@ -810,9 +814,9 @@ my $INSTALLDIR  = '';
 #  $WORKDIR    = "$BASEPATH/work/$mapname" . "_$maplang";
 #  $INSTALLDIR = "$BASEPATH/install/$mapname" . "_$maplang";
 #}
-$WORKDIR     = "$BASEPATH/work/$mapname";
-$WORKDIRLANG = "$BASEPATH/work/$mapname" . "_$maplang";
-$INSTALLDIR  = "$BASEPATH/install/$mapname" . "_$maplang";
+$WORKDIR     = "$BASEPATH/work/$mapname" . "_$maptyp";
+$WORKDIRLANG = "$BASEPATH/work/$mapname" . "_$maptyp" . "_$maplang";
+$INSTALLDIR  = "$BASEPATH/install/$mapname" . "_$maptyp". "_$maplang";
 
 # Put the needed release numbers together
 get_release ();
@@ -1296,7 +1300,7 @@ sub download_url {
   my $download_dst = shift;
 
   # Initialize the default verbosity (no downloadbar) and other options
-  my $downloadbar_wget = "-nv";
+  my $downloadbar_wget = "-v";
   my $downloadbar_curl = "--silent";
   my $download_continue_wget = "";
   my $download_continue_curl = "";
