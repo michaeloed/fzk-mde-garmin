@@ -1,1 +1,1 @@
-start build_fenix.cmd 10 6380 fenix6x
+start build_fenix.cmd 10 6380 ahfenix
